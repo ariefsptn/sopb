@@ -1,0 +1,91 @@
+
+//https://stackoverflow.com/questions/44459155/includes-function-in-acl-condition
+
+// This Rule is needed for all Participants
+rule SOPBNetworkAdminPermissionSystem {
+  description: "can READ the system registries"
+  participant: "ANY"
+  operation: READ
+  resource: "org.hyperledger.composer.system.**"
+  action: ALLOW  
+}
+
+// #1 Allow the 'System Network Admin' to carry out Identities management
+//    and Network operations
+rule NetworkControlPermission {
+  description:  "give admin ALL access to system resources"
+  participant: "org.hyperledger.composer.system.NetworkAdmin"
+  operation: ALL
+  resource: "org.hyperledger.composer.system.*"
+  action: ALLOW  
+}
+
+rule ParticipantRegistryControlPermission {
+  description:  "give admin ALL access to SOPB participant types"
+  participant: "org.hyperledger.composer.system.NetworkAdmin"
+  operation: ALL
+  resource: "org.sopb.mynetwork.SOPBParticipant"
+  action: ALLOW  
+}
+
+rule SOPBNetworkAdminPermissionSOPB {
+  description: "can READ the resource registries"
+  participant: "org.sopb.mynetwork.SOPBParticipant"
+  operation: READ
+  resource: "org.sopb.mynetwork.*"
+  action: ALLOW
+}
+
+rule SOPBParticipantPermissionHistorian {
+  description: "can write HistorianRecord to the Historian"
+  participant: "org.sopb.mynetwork.SOPBParticipant"
+  operation: CREATE
+  resource: "org.hyperledger.composer.system.HistorianRecord"
+  action: ALLOW  
+}
+
+rule CreateProductPermission {
+  description: "only Manufacturer can Create Product"
+  participant: "org.sopb.mynetwork.Manufacturer"
+  operation: CREATE
+  resource: "org.sopb.mynetwork.*"
+  transaction: "org.sopb.mynetwork.CreateProduct"
+  action: ALLOW
+}
+
+rule ManufacturerReadPermission {
+  description: "only Manufacturer can only READ their own product"
+  participant(p): "org.sopb.mynetwork.Manufacturer"
+  operation: READ
+  resource(r): "org.sopb.mynetwork.Product"
+  condition: (r.prodManu == p)
+  action: ALLOW
+}
+
+rule InitTransferProductPermission {
+  description: "only Owner can Transfer Product"
+  participant: "org.sopb.mynetwork.Manufacturer"
+  operation: CREATE,UPDATE
+  resource: "org.sopb.mynetwork.*"
+  transaction: "org.sopb.mynetwork.InitialTransfer"
+  action: ALLOW
+}
+
+
+rule TransferProductPermission {
+  description: "only Owner can Transfer Product"
+  participant: "org.sopb.mynetwork.Owner"
+  operation: CREATE,UPDATE
+  resource: "org.sopb.mynetwork.*"
+  transaction: "org.sopb.mynetwork.TransferProduct"
+  action: ALLOW
+}
+
+rule AcceptProductPermission {
+  description: "only New Owner can Accept Product"
+  participant: "org.sopb.mynetwork.Owner"
+  operation: CREATE,UPDATE
+  resource: "org.sopb.mynetwork.*"
+  transaction: "org.sopb.mynetwork.AcceptProduct"
+  action: ALLOW
+}

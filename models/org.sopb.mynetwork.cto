@@ -1,0 +1,96 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Write your model definitions here
+ */
+
+namespace org.sopb.mynetwork
+
+abstract participant SOPBParticipant identified by userKey {
+  o String userKey
+  o String userName
+  o String userPass
+}
+
+participant Manufacturer extends SOPBParticipant {
+    o Contact contact
+    o String manuLocation
+}
+
+participant Owner extends SOPBParticipant {
+    o ownerType type
+    o String ownerLocation optional
+    o Contact ownerContact optional
+}
+
+enum ownerType {
+  o CUSTOMER
+  o RETAILER
+}
+
+concept Contact {
+  o String email
+  o String phoneNum
+}
+
+
+
+asset Product identified by prodId {
+  o String prodId
+  o String prodTypeId
+  o String prodName
+  o String prodSpecs
+  o String imgUrl
+  o String prodLocation
+  o DateTime prodDate 
+  o Integer ownerCount default=0
+  --> Owner firstOwner optional
+  --> Owner currentOwner optional
+  --> Owner newOwner optional
+  --> Manufacturer prodManu
+  o Status prodStat default="PRODUCED"
+}
+enum Status {
+  o PRODUCED
+  o SENT
+  o OWNED
+}
+
+transaction CreateProduct {
+  o String id
+  o String prodTypeId
+  o String prodName
+  o String prodSpecs
+  o String imgUrl
+  o String prodLocation
+}
+
+event ProductCreated {
+  o String prodId
+}
+
+transaction InitialTransfer {
+  --> Product product
+  --> Owner firstOwner
+}
+
+transaction TransferProduct {
+  --> Product product
+  --> Owner newOwner
+}
+
+transaction AcceptProduct {
+  --> Product product
+}
