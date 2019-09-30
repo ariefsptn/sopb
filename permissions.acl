@@ -20,15 +20,23 @@ rule NetworkControlPermission {
   action: ALLOW  
 }
 
-rule ParticipantRegistryControlPermission {
-  description:  "give admin ALL access to SOPB participant types"
-  participant: "org.hyperledger.composer.system.NetworkAdmin"
-  operation: ALL
-  resource: "org.sopb.mynetwork.SOPBParticipant"
+rule SOPBParticipantPermission {
+  description:  "give admin ALL access to system resources"
+  participant: "org.sopb.mynetwork.SOPBParticipant"
+  operation: CREATE
+  resource: "org.hyperledger.composer.system.UpdateParticipant"
   action: ALLOW  
 }
 
-rule SOPBNetworkAdminPermissionSOPB {
+rule ParticipantRegistryControlPermission {
+  description:  "give admin ALL access to SOPB participant types"
+  participant: "org.hyperledger.composer.system.NetworkAdmin"
+  operation: CREATE,READ
+  resource: "org.sopb.mynetwork.*"
+  action: ALLOW  
+}
+
+rule SOPBNetworkAdminPermission {
   description: "can READ the resource registries"
   participant: "org.sopb.mynetwork.SOPBParticipant"
   operation: READ
@@ -49,21 +57,12 @@ rule CreateProductPermission {
   participant: "org.sopb.mynetwork.Manufacturer"
   operation: CREATE
   resource: "org.sopb.mynetwork.*"
-  transaction: "org.sopb.mynetwork.CreateProduct"
-  action: ALLOW
-}
-
-rule ManufacturerReadPermission {
-  description: "only Manufacturer can only READ their own product"
-  participant(p): "org.sopb.mynetwork.Manufacturer"
-  operation: READ
-  resource(r): "org.sopb.mynetwork.Product"
-  condition: (r.prodManu == p)
+  transaction: "org.sopb.mynetwork.EnrollProduct"
   action: ALLOW
 }
 
 rule InitTransferProductPermission {
-  description: "only Owner can Transfer Product"
+  description: "only Manufacturer can Transfer Product"
   participant: "org.sopb.mynetwork.Manufacturer"
   operation: CREATE,UPDATE
   resource: "org.sopb.mynetwork.*"
@@ -87,5 +86,49 @@ rule AcceptProductPermission {
   operation: CREATE,UPDATE
   resource: "org.sopb.mynetwork.*"
   transaction: "org.sopb.mynetwork.AcceptProduct"
+  action: ALLOW
+}
+
+rule CancelTransferPermission {
+  description: "only New Owner can Accept Product"
+  participant: "org.sopb.mynetwork.Owner"
+  operation: CREATE,UPDATE
+  resource: "org.sopb.mynetwork.*"
+  transaction: "org.sopb.mynetwork.CancelTransfer"
+  action: ALLOW
+}
+rule OwnerEditDataPermisson {
+  description: "only Owner can edit data"
+  participant: "org.sopb.mynetwork.Owner"
+  operation: UPDATE,CREATE
+  resource: "org.sopb.mynetwork.SOPBParticipant"
+  transaction: "org.sopb.mynetwork.EditDataOwner"
+  action: ALLOW
+}
+
+rule ManufacturerEditDataPermission {
+  description: "only Manufacturer can edit data"
+  participant: "org.sopb.mynetwork.Manufacturer"
+  operation: UPDATE,CREATE
+  resource: "org.sopb.mynetwork.SOPBParticipant"
+  transaction: "org.sopb.mynetwork.EditDataManufacturer"
+  action: ALLOW
+}
+
+rule VerificationPermission {
+  description: "only Admin can verify Manufacturerz"
+  participant: "org.hyperledger.composer.system.NetworkAdmin"
+  operation: CREATE,UPDATE
+  resource: "org.sopb.mynetwork.Manufacturer"
+  transaction: "org.sopb.mynetwork.ChangeVerificationStatusManufacturer"
+  action: ALLOW
+}
+
+rule OwnerVerificationPermission {
+  description: "only Admin can verify Manufacturer"
+  participant: "org.hyperledger.composer.system.NetworkAdmin"
+  operation: CREATE,UPDATE
+  resource: "org.sopb.mynetwork.Owner"
+  transaction: "org.sopb.mynetwork.ChangeVerificationStatusOwner"
   action: ALLOW
 }

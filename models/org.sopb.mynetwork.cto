@@ -18,34 +18,36 @@
 
 namespace org.sopb.mynetwork
 
-abstract participant SOPBParticipant identified by userKey {
-  o String userKey
+abstract participant SOPBParticipant identified by userId {
+  o String userId
   o String userName
-  o String userPass
 }
 
 participant Manufacturer extends SOPBParticipant {
-    o Contact contact
-    o String manuLocation
+    o String email optional
+    o String phoneNum optional
+    o String manuLocation optional
+    o isVerified ver default = "YES" 
 }
 
 participant Owner extends SOPBParticipant {
     o ownerType type
     o String ownerLocation optional
-    o Contact ownerContact optional
+    o String email optional
+    o String phoneNum optional
+    o isVerified ver default="YES"
 }
 
 enum ownerType {
   o CUSTOMER
   o RETAILER
+  o DISTRIBUTOR
 }
 
-concept Contact {
-  o String email
-  o String phoneNum
+enum isVerified {
+  o YES
+  o NO
 }
-
-
 
 asset Product identified by prodId {
   o String prodId
@@ -56,19 +58,32 @@ asset Product identified by prodId {
   o String prodLocation
   o DateTime prodDate 
   o Integer ownerCount default=0
-  --> Owner firstOwner optional
-  --> Owner currentOwner optional
+  //--> Owner firstOwner optional
+  //--> Owner currentOwner optional
   --> Owner newOwner optional
+  --> Owner[] owners optional
   --> Manufacturer prodManu
-  o Status prodStat default="PRODUCED"
+  o History[] transactionHistory optional
+  o Status prodStat default="MANUFACTURED"
 }
+
+concept History {
+  o String ownerId
+  o String ownerType
+  o String transactionType
+  o String desc default="-"
+  o DateTime timestamp
+}
+
 enum Status {
-  o PRODUCED
+  o MANUFACTURED
+  o ONDISTRIBUTION
+  o ONRETAIL
   o SENT
   o OWNED
 }
 
-transaction CreateProduct {
+transaction EnrollProduct {
   o String id
   o String prodTypeId
   o String prodName
@@ -77,20 +92,70 @@ transaction CreateProduct {
   o String prodLocation
 }
 
-event ProductCreated {
+event ProductEnrolled {
   o String prodId
 }
 
 transaction InitialTransfer {
-  --> Product product
+  --> Product[] productList
   --> Owner firstOwner
 }
 
 transaction TransferProduct {
-  --> Product product
+  --> Product[] productList
   --> Owner newOwner
+  o String desc optional
 }
 
+event ProductTransferred {
+  o String prodId
+  o String transferredFrom
+  o String transferredTo
+}
+
+
 transaction AcceptProduct {
-  --> Product product
+  --> Product[] productList
+}
+
+
+event ProductAccepted {
+  o String prodId
+  o String transferredFrom
+  o String transferredTo
+}
+
+transaction EditDataOwner {
+  --> Owner owner
+  o String userName 
+  o String ownerLocation 
+  o String email 
+  o String phoneNum 
+}
+
+transaction EditDataManufacturer{
+  --> Manufacturer man
+  o String email 
+  o String phoneNum 
+  o String manuLocation 
+}
+
+transaction CancelTransfer {
+  --> Product[] productList
+  o String desc optional
+}
+
+event TransferCancelled {
+  o String prodId
+  o String transferredFrom
+  o String transferredTo
+  o String cancelledBy
+}
+
+transaction ChangeVerificationStatusManufacturer {
+  --> Manufacturer man
+}
+
+transaction ChangeVerificationStatusOwner {
+  --> Owner owner
 }
